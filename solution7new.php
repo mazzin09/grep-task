@@ -1,67 +1,84 @@
 <?php
 $baseURL = "https://github.com/search?q=php&type=repositories&s=stars&o=desc&p=";
 
-$headers = array(
-    'authority: github.com',
-    'accept: application/json',
-    'accept-language: en-US,en;q=0.8',
-    'cookie: _octo=GH1.1.1795783153.1684482544; _device_id=c3df6e2064768fd14a88b78469223589; logged_in=no; preferred_color_mode=light; tz=Asia^%^2FKatmandu; _gh_sess=CTtHYf6p3xrWr79Aa^%^2FjRq^%^2FWv^%^2BbR^%^2FI2P0nPaLiNyA9^%^2BaSWmlQIlJlEL9R6lnXzbn2o^%^2BdeKB2IthcU0XQ^%^2F9fIQXuTF1tCgXVSSlGeyCqBEGqGqnhngXSecad1lZ1jlqxWBhKrgwTma30Kf39eaHoJ^%^2BFdRrpTw8Q0Nv53Df8QWsG^%^2BnIhhW7ooreSii9fwtdn9whPjbCbpuiPSeevUgm^%^2Fjn1Glwpsdfx6sJnwvgfbnRQ43SsrVTT8RZg5VhXPLUAgQm3L7vjYlp3PbIaDYgBzJPu5YRJ6v9Lr9^%^2F0Kr14RGLQabSkKcIq--TSzOdwBkiIbUg0GY--hfFdLXQkTEfrSkGObxMEVA^%^3D^%^3D"',
-    'referer: https://github.com/search?q=php&type=repositories&s=stars&o=desc&p=2',
-    'sec-ch-ua: "Brave";v="117", "Not;A=Brand";v="8", "Chromium";v="117"',
-    'sec-ch-ua-mobile: ?0',
-    'sec-ch-ua-platform: "Windows"',
-    'sec-fetch-dest: empty',
-    'sec-fetch-mode: cors',
-    'sec-fetch-site: same-origin',
-    'sec-gpc: 1',
-    'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
-    'x-github-target: dotcom',
-    'x-requested-with: XMLHttpRequest'
-);
+function setHeaders($url)
+{
+    $userAgents = [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Firefox/53.0",
+        "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Firefox/53.0",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:53.0) Gecko/20100101 Firefox/53.0",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/16.16299",
+        "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/16.16299",
+        "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Safari/537.36",
+        "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Version/11.1.1 Safari/537.36",
+    ];
 
-for ($page = 1; $page <= 10; $page++) {
-    $url = $baseURL . $page;
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_ENCODING, 'gzip, deflate');
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    $headers = array(
+        'authority: github.com',
+        'accept: application/json',
+        'accept-language: en-US,en;q=0.8',
+        'user-agent:' . $userAgents[array_rand($userAgents)],
+        'x-github-target: dotcom',
+        'x-requested-with: XMLHttpRequest'
+    );
 
-    $response = curl_exec($ch);
-    if (curl_errno($ch)) {
-        echo 'Error: ' . curl_error($ch);
-    }
-
-    curl_close($ch);
-
-    // Process $response (your data extraction logic here)
-
-    // For example, you can decode the JSON response if it's in JSON format
-    // $data = json_decode($response, true);
-
-    // ... (your data processing logic here)
-
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_ENCODING, 'gzip, deflate');
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    
-    $response = curl_exec($ch);
-    if (curl_errno($ch)) {
-        echo 'Error: ' . curl_error($ch);
-    }
-    
-    curl_close($ch);
-    
-    $json = json_decode($response,1);
-    file_put_contents(__DIR__."/data.json",$response);
-    print_r($json);
-    
-
-    echo "Data for Page $page processed successfully.\n";
+    return $headers;
 }
 
-?>
+$fp = fopen('repositories.csv', 'a'); // Open CSV file in append mode
+
+for ($page = 1; $page <= 10; $page++) {
+    $try = 1;
+    do {
+        $url = $baseURL . $page;
+        $headers = setHeaders($url);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_ENCODING, 'gzip, deflate');
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+        $response = curl_exec($ch);
+
+        if (curl_errno($ch)) {
+            echo 'Error: ' . curl_error($ch);
+        }
+
+        curl_close($ch);
+
+        $json = json_decode($response, true);
+
+        if ($json && isset($json['items'][0])) {
+            $repoData = $json['items'][0];
+
+            $data = [
+                'repo' => $repoData['full_name'],
+                'description' => $repoData['description'],
+                'is_sponsored' => 'yes',
+                'topics' => implode('|', $repoData['topics']),
+                'stargazers' => $repoData['stargazers_count'],
+                'language' => $repoData['language'],
+                'license' => $repoData['license']['name'],
+                'date' => date('d/m/Y', strtotime($repoData['created_at'])),
+                'commits' => $repoData['commits'],
+            ];
+
+            fputcsv($fp, $data); // Write data to CSV
+
+            echo "Data for Page $page processed successfully.\n";
+        } else {
+            echo "Failed to retrieve data from the GitHub API for page $page.\n";
+        }
+
+        $try++;
+        echo("Retrying $try for page $page \n");
+        sleep(10);
+    } while ($json == "" && $try <= 10);
+}
+
+fclose($fp); // Close the CSV file after writing all data
+echo "Data has been successfully written to 'repositories.csv' file.\n";
